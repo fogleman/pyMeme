@@ -1,0 +1,12 @@
+pyMeme is the official Python port of iMeme, a meme generator for Mac OS X.
+
+pyMeme has been tested on Windows and Mac OS X but should also work on Linux.
+
+http://www.michaelfogleman.com/imeme/
+
+* Over 50 built-in templates.
+* Enter your own header and footer text.
+* Adjustable text size and alignment.
+* Use your own images.
+* Save as JPG.
+* Works on Windows XP and up.
