@@ -30,7 +30,7 @@ def load_images():
 
 class FileDropTarget(wx.FileDropTarget):
     def __init__(self, callback):
-        wx.FileDropTarget.__init__(self)
+        super(FileDropTarget, self).__init__()
         self.callback = callback
     def OnDropFiles(self, x, y, filenames):
         self.callback(filenames)
@@ -82,7 +82,6 @@ class Model(object):
 class BitmapView(wx.Panel):
     def __init__(self, parent):
         super(BitmapView, self).__init__(parent, style=wx.BORDER_STATIC)
-        #self.Disable()
         self.bitmap = None
         self.scaled_bitmap = None
         self.SetBackgroundStyle(wx.BG_STYLE_CUSTOM)
@@ -128,6 +127,10 @@ class Frame(wx.Frame):
         self.on_change()
     def on_change(self):
         self.bitmap_view.set_bitmap(self.model.generate())
+    def on_files_dropped(self, filenames):
+        if filenames:
+            self.model.path = filenames[-1]
+            self.on_change()
     def create_contents(self, parent):
         panel = wx.Panel(parent)
         controls = self.create_controls(panel)
@@ -160,19 +163,11 @@ class Frame(wx.Frame):
         sizer.AddSpacer(8)
         sizer.Add(widgets, 0, wx.EXPAND)
         return sizer
-    
-    def on_files_dropped(self, filenames):
-        if filenames:
-            path = filenames[-1]
-            self.model.path = path
-            self.on_change()
-            
     def create_view(self, parent):
         self.bitmap_view = BitmapView(parent)
         self.bitmap_view.SetMinSize((400, 400))
         self.bitmap_view.SetDropTarget(FileDropTarget(self.on_files_dropped))
         return self.bitmap_view
-    
     def create_widgets(self, parent):
         self.header = header = wx.TextCtrl(parent)
         self.footer = footer = wx.TextCtrl(parent)
