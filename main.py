@@ -23,7 +23,7 @@ def load_images():
     for name in names:
         base, ext = os.path.splitext(name)
         if ext in ('.png', '.jpg', '.jpeg'):
-            title = base.replace('-', ' ').title()
+            title = base.replace('-', ' ')
             full_path = os.path.join(path, name)
             result.append((title, full_path))
     return result
