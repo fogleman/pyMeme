@@ -250,7 +250,10 @@ class Frame(wx.Frame):
         self.model.header_size = max(self.model.header_size, 1)
         self.on_change()
     def on_header_bigger(self, event):
-        self.model.header_size += 4
+        if self.model.header_size <= 10:
+            self.model.header_size += 1
+        else:
+            self.model.header_size += 4
         self.model.header_size = min(self.model.header_size, 100)
         self.on_change()
     def on_header_left(self, event):
@@ -273,7 +276,10 @@ class Frame(wx.Frame):
         self.model.footer_size = max(self.model.footer_size, 1)
         self.on_change()
     def on_footer_bigger(self, event):
-        self.model.footer_size += 4
+        if self.model.footer_size <= 10:
+            self.model.footer_size += 1
+        else:
+            self.model.footer_size += 4
         self.model.footer_size = min(self.model.footer_size, 100)
         self.on_change()
     def on_footer_left(self, event):
