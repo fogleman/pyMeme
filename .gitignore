@@ -1,0 +1,7 @@
+*.pyd
+*.pyc
+*.pyo
+*.tmp
+*.bak
+*~
+

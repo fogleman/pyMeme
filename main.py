@@ -42,8 +42,8 @@ class Model(object):
     def reset(self):
         self.header = ''
         self.footer = ''
-        self.header_size = 36
-        self.footer_size = 36
+        self.header_size = 20
+        self.footer_size = 20
         self.header_alignment = core.CENTER
         self.footer_alignment = core.CENTER
         self.padding = 10
@@ -54,6 +54,8 @@ class Model(object):
         page = core.Page()
         page.add(core.Bitmap(background))
         text_width = width - self.padding * 2
+        adjusted_header_size = int(height*(self.header_size/200.0))
+        adjusted_footer_size = int(height*(self.footer_size/200.0))
         header = core.Text(
             self.header.upper(),
             text_width,
@@ -61,7 +63,7 @@ class Model(object):
             border_color=(0, 0, 0),
             border_size=self.border_size,
             color=(255, 255, 255),
-            font=core.font('Impact', self.header_size),
+            font=core.font('Impact', adjusted_header_size),
         )
         page.add(header, (width / 2, self.padding), (0.5, 0))
         footer = core.Text(
@@ -71,7 +73,7 @@ class Model(object):
             border_color=(0, 0, 0),
             border_size=self.border_size,
             color=(255, 255, 255),
-            font=core.font('Impact', self.footer_size),
+            font=core.font('Impact', adjusted_footer_size),
         )
         page.add(footer, (width / 2, -self.padding), (0.5, 1))
         bitmap = wx.EmptyBitmap(width, height)
@@ -241,12 +243,18 @@ class Frame(wx.Frame):
         self.model.header = self.header.GetValue()
         self.on_change()
     def on_header_smaller(self, event):
-        self.model.header_size -= 4
-        self.model.header_size = max(self.model.header_size, 8)
+        if self.model.header_size <= 10:
+            self.model.header_size -= 1
+        else:
+            self.model.header_size -= 4
+        self.model.header_size = max(self.model.header_size, 1)
         self.on_change()
     def on_header_bigger(self, event):
-        self.model.header_size += 4
-        self.model.header_size = min(self.model.header_size, 144)
+        if self.model.header_size <= 10:
+            self.model.header_size += 1
+        else:
+            self.model.header_size += 4
+        self.model.header_size = min(self.model.header_size, 100)
         self.on_change()
     def on_header_left(self, event):
         self.model.header_alignment = core.LEFT
@@ -261,12 +269,18 @@ class Frame(wx.Frame):
         self.model.footer = self.footer.GetValue()
         self.on_change()
     def on_footer_smaller(self, event):
-        self.model.footer_size -= 4
-        self.model.footer_size = max(self.model.footer_size, 8)
+        if self.model.footer_size <= 10:
+            self.model.footer_size -= 1
+        else:
+            self.model.footer_size -= 4
+        self.model.footer_size = max(self.model.footer_size, 1)
         self.on_change()
     def on_footer_bigger(self, event):
-        self.model.footer_size += 4
-        self.model.footer_size = min(self.model.footer_size, 144)
+        if self.model.footer_size <= 10:
+            self.model.footer_size += 1
+        else:
+            self.model.footer_size += 4
+        self.model.footer_size = min(self.model.footer_size, 100)
         self.on_change()
     def on_footer_left(self, event):
         self.model.footer_alignment = core.LEFT
