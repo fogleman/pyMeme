@@ -130,7 +130,6 @@ class Frame(wx.Frame):
     def on_change(self):
         self.bitmap_view.set_bitmap(self.model.generate())
     def on_files_dropped(self, filenames):
-        print filenames
         if filenames:
             self.model.path = filenames[-1]
             self.on_change()
