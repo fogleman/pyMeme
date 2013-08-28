@@ -2,6 +2,23 @@ import cache
 import core
 import os
 import wx
+import platform
+import subprocess
+
+IMAGES_PATH = os.path.abspath('images')
+
+def show_folder(path):
+    system = platform.system().lower()
+    if system == 'darwin':
+        try:
+            from appscript import App, mactypes 
+            App("Finder").reveal(mactypes.Alias(path).alias)
+        except:
+            subprocess.call(['open', '-R', path])
+    elif system == 'windows':
+        subprocess.call(['start', path])
+    elif system == 'linux':
+        print 'Linux not implemented yet.'
 
 def menu_item(window, menu, label, func):
     item = wx.MenuItem(menu, -1, label)
@@ -18,13 +35,13 @@ def tool_item(window, toolbar, label, func, icon):
 
 def load_images():
     result = []
-    path = 'images'
-    names = os.listdir(path)
+    names = os.listdir(IMAGES_PATH)
     for name in names:
         base, ext = os.path.splitext(name)
         if ext in ('.png', '.jpg', '.jpeg'):
             title = base.replace('-', ' ')
-            full_path = os.path.join(path, name)
+            title = title.replace('_', ' ')
+            full_path = os.path.join(IMAGES_PATH, name)
             result.append((title, full_path))
     return result
 
@@ -222,6 +239,8 @@ class Frame(wx.Frame):
         menu_item(self, menu, 'Open...\tCtrl+O', self.on_open)
         menu_item(self, menu, 'Save As...\tCtrl+S', self.on_save)
         menu.AppendSeparator()
+        menu_item(self, menu, 'Show Images Folder', self.on_show_images)
+        menu.AppendSeparator()
         menu_item(self, menu, 'Exit\tAlt+F4', self.on_exit)
         menubar.Append(menu, '&File')
         self.SetMenuBar(menubar)
@@ -314,6 +333,8 @@ class Frame(wx.Frame):
             image = wx.ImageFromBitmap(bitmap)
             image.SetOptionInt(wx.IMAGE_OPTION_QUALITY, 95)
             image.SaveFile(path, wx.BITMAP_TYPE_JPEG)
+    def on_show_images(self, event):
+        show_folder(IMAGES_PATH)
     def on_exit(self, event):
         self.Close()
 
