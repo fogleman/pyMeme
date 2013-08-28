@@ -48,7 +48,6 @@ class Model(object):
         self.footer_alignment = core.CENTER
         self.padding = 10
         self.border_size = 3
-
     def generate(self):
         background = cache.get_bitmap(self.path)
         width, height = background.GetSize()
