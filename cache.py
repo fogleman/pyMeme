@@ -1,5 +1,7 @@
 import wx
-
+import urllib2
+import os
+from StringIO import StringIO
 class Cache(object):
     def __init__(self):
         self.cache = {}
@@ -7,7 +9,14 @@ class Cache(object):
         if key is None or isinstance(key, wx.Bitmap):
             return key
         if key not in self.cache:
-            self.cache[key] = wx.Bitmap(key)
+            if os.path.exists(key):
+                self.cache[key] = wx.Bitmap(key)
+            else:
+                fp = urllib2.urlopen(key)
+                data = fp.read()
+                fp.close()
+                img = wx.ImageFromStream(StringIO(data))
+                self.cache[key] = img.ConvertToBitmap()
         return self.cache[key]
     def get_color(self, key):
         if key is None or isinstance(key, wx.Colour):

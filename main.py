@@ -4,6 +4,7 @@ import os
 import wx
 import platform
 import subprocess
+import urllib2
 
 IMAGES_PATH = os.path.abspath('images')
 
@@ -47,12 +48,30 @@ def load_images():
             result.append((title, full_path))
     return result
 
-class FileDropTarget(wx.FileDropTarget):
+class ImageDropTarget(wx.PyDropTarget):
     def __init__(self, callback):
-        super(FileDropTarget, self).__init__()
+        super(ImageDropTarget, self).__init__()
         self.callback = callback
-    def OnDropFiles(self, x, y, filenames):
-        self.callback(filenames)
+        self.do = wx.DataObjectComposite()
+        self.file_do = wx.FileDataObject()
+        self.url_do = wx.TextDataObject()
+        self.do.Add(self.file_do)
+        self.do.Add(self.url_do)
+        self.SetDataObject(self.do)
+
+    def OnData(self, x, y, data):
+        if self.GetData():
+            df = self.do.GetReceivedFormat().GetType()
+            if df in [wx.DF_UNICODETEXT, wx.DF_TEXT]:
+                try:
+                    self.callback(self.url_do.GetText())
+                except:
+                    pass
+            elif df == wx.DF_FILENAME:
+                try:
+                    self.callback(self.file_do.GetFilenames()[0])
+                except:
+                    pass
 
 class Model(object):
     def __init__(self):
@@ -148,10 +167,11 @@ class Frame(wx.Frame):
         self.on_change()
     def on_change(self):
         self.bitmap_view.set_bitmap(self.model.generate())
-    def on_files_dropped(self, filenames):
-        if filenames:
-            self.model.path = filenames[-1]
+    def on_files_dropped(self, data):
+        if data:
+            self.model.path = data
             self.on_change()
+
     def create_contents(self, parent):
         panel = wx.Panel(parent)
         controls = self.create_controls(panel)
@@ -187,7 +207,7 @@ class Frame(wx.Frame):
     def create_view(self, parent):
         self.bitmap_view = BitmapView(parent)
         self.bitmap_view.SetMinSize((400, 400))
-        self.bitmap_view.SetDropTarget(FileDropTarget(self.on_files_dropped))
+        self.bitmap_view.SetDropTarget(ImageDropTarget(self.on_files_dropped))
         return self.bitmap_view
     def create_widgets(self, parent):
         self.header = header = wx.TextCtrl(parent)
