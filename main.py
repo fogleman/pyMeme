@@ -11,12 +11,14 @@ def show_folder(path):
     system = platform.system().lower()
     if system == 'darwin':
         try:
-            from appscript import App, mactypes 
-            App("Finder").reveal(mactypes.Alias(path).alias)
+            from appscript import App, mactypes
+            if os.path.exists(path):
+                App("Finder").reveal(mactypes.Alias(path).alias)
         except:
             subprocess.call(['open', '-R', path])
     elif system == 'windows':
-        subprocess.call(['start', path])
+        if os.path.exists(IMAGES_PATH):
+            subprocess.call(['start', path], shell=True)
     elif system == 'linux':
         print 'Linux not implemented yet.'
 
