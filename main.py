@@ -2,6 +2,26 @@ import cache
 import core
 import os
 import wx
+import platform
+import subprocess
+import urllib2
+
+IMAGES_PATH = os.path.abspath('images')
+
+def show_folder(path):
+    system = platform.system().lower()
+    if system == 'darwin':
+        try:
+            from appscript import App, mactypes
+            if os.path.exists(path):
+                App("Finder").reveal(mactypes.Alias(path).alias)
+        except:
+            subprocess.call(['open', '-R', path])
+    elif system == 'windows':
+        if os.path.exists(IMAGES_PATH):
+            subprocess.call(['start', path], shell=True)
+    elif system == 'linux':
+        print 'Linux not implemented yet.'
 
 def menu_item(window, menu, label, func):
     item = wx.MenuItem(menu, -1, label)
@@ -18,22 +38,40 @@ def tool_item(window, toolbar, label, func, icon):
 
 def load_images():
     result = []
-    path = 'images'
-    names = os.listdir(path)
+    names = os.listdir(IMAGES_PATH)
     for name in names:
         base, ext = os.path.splitext(name)
         if ext in ('.png', '.jpg', '.jpeg'):
             title = base.replace('-', ' ')
-            full_path = os.path.join(path, name)
+            title = title.replace('_', ' ')
+            full_path = os.path.join(IMAGES_PATH, name)
             result.append((title, full_path))
     return result
 
-class FileDropTarget(wx.FileDropTarget):
+class ImageDropTarget(wx.PyDropTarget):
     def __init__(self, callback):
-        super(FileDropTarget, self).__init__()
+        super(ImageDropTarget, self).__init__()
         self.callback = callback
-    def OnDropFiles(self, x, y, filenames):
-        self.callback(filenames)
+        self.do = wx.DataObjectComposite()
+        self.file_do = wx.FileDataObject()
+        self.url_do = wx.TextDataObject()
+        self.do.Add(self.file_do)
+        self.do.Add(self.url_do)
+        self.SetDataObject(self.do)
+
+    def OnData(self, x, y, data):
+        if self.GetData():
+            df = self.do.GetReceivedFormat().GetType()
+            if df in [wx.DF_UNICODETEXT, wx.DF_TEXT]:
+                try:
+                    self.callback(self.url_do.GetText())
+                except:
+                    pass
+            elif df == wx.DF_FILENAME:
+                try:
+                    self.callback(self.file_do.GetFilenames()[0])
+                except:
+                    pass
 
 class Model(object):
     def __init__(self):
@@ -129,10 +167,11 @@ class Frame(wx.Frame):
         self.on_change()
     def on_change(self):
         self.bitmap_view.set_bitmap(self.model.generate())
-    def on_files_dropped(self, filenames):
-        if filenames:
-            self.model.path = filenames[-1]
+    def on_files_dropped(self, data):
+        if data:
+            self.model.path = data
             self.on_change()
+
     def create_contents(self, parent):
         panel = wx.Panel(parent)
         controls = self.create_controls(panel)
@@ -168,7 +207,7 @@ class Frame(wx.Frame):
     def create_view(self, parent):
         self.bitmap_view = BitmapView(parent)
         self.bitmap_view.SetMinSize((400, 400))
-        self.bitmap_view.SetDropTarget(FileDropTarget(self.on_files_dropped))
+        self.bitmap_view.SetDropTarget(ImageDropTarget(self.on_files_dropped))
         return self.bitmap_view
     def create_widgets(self, parent):
         self.header = header = wx.TextCtrl(parent)
@@ -221,6 +260,8 @@ class Frame(wx.Frame):
         menu_item(self, menu, 'New\tCtrl+N', self.on_new)
         menu_item(self, menu, 'Open...\tCtrl+O', self.on_open)
         menu_item(self, menu, 'Save As...\tCtrl+S', self.on_save)
+        menu.AppendSeparator()
+        menu_item(self, menu, 'Show Images Folder', self.on_show_images)
         menu.AppendSeparator()
         menu_item(self, menu, 'Exit\tAlt+F4', self.on_exit)
         menubar.Append(menu, '&File')
@@ -314,6 +355,8 @@ class Frame(wx.Frame):
             image = wx.ImageFromBitmap(bitmap)
             image.SetOptionInt(wx.IMAGE_OPTION_QUALITY, 95)
             image.SaveFile(path, wx.BITMAP_TYPE_JPEG)
+    def on_show_images(self, event):
+        show_folder(IMAGES_PATH)
     def on_exit(self, event):
         self.Close()
 
